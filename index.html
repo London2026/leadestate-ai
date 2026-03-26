@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeadEstate AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <header class="flex justify-between items-center p-6 max-w-6xl mx-auto w-full">
+    <h1 class="text-xl font-bold">🏡 LeadEstate AI</h1>
+    <button onclick="document.getElementById('form').scrollIntoView({behavior: 'smooth'})" class="bg-white text-black px-4 py-2 rounded-xl">Get Started</button>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="text-center mt-10 px-4">
+    <h2 class="text-4xl font-bold mb-4">Generate Real Estate Content in Seconds</h2>
+    <p class="text-gray-300 mb-8">AI-powered posts that attract buyers & sellers effortlessly</p>
+  </section>
+
+  <!-- Generator Card -->
+  <div class="flex justify-center px-4">
+    <div class="bg-white text-black p-8 rounded-2xl shadow-2xl w-full max-w-md">
+      <h3 class="text-xl font-semibold mb-4 text-center">Try It Free</h3>
+
+      <form id="form" class="space-y-4">
+        <input 
+          id="location" 
+          class="w-full p-3 border rounded-lg" 
+          placeholder="Location (e.g. London)" 
+          required
+        />
+
+        <input 
+          id="tone" 
+          class="w-full p-3 border rounded-lg" 
+          placeholder="Tone (luxury, friendly)" 
+          required
+        />
+
+        <button 
+          type="submit" 
+          class="w-full bg-black text-white p-3 rounded-lg hover:bg-gray-800">
+          Generate Post
+        </button>
+      </form>
+
+      <div id="loading" class="text-center mt-4 hidden">⏳ Generating...</div>
+      <button id="newBtn" class="w-full mt-3 bg-gray-300 text-black p-2 rounded-lg hidden">Generate New Post</button>
+
+      <div class="relative mt-6">
+        <div class="flex justify-end mb-2">
+        <button id="copyBtn" class="bg-black text-white px-3 py-1 text-xs rounded hidden">Copy</button>
+      </div>
+      <pre id="output" class="bg-gray-100 p-4 rounded-lg whitespace-pre-wrap text-sm"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="mt-16 max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-6">
+    <div class="bg-gray-800 p-6 rounded-2xl">
+      <h4 class="font-bold mb-2">⚡ Instant Content</h4>
+      <p class="text-gray-400">Generate high-quality posts in seconds</p>
+    </div>
+    <div class="bg-gray-800 p-6 rounded-2xl">
+      <h4 class="font-bold mb-2">🎯 Lead Focused</h4>
+      <p class="text-gray-400">Designed to attract buyers and sellers</p>
+    </div>
+    <div class="bg-gray-800 p-6 rounded-2xl">
+      <h4 class="font-bold mb-2">📈 Grow Faster</h4>
+      <p class="text-gray-400">Stay consistent and build authority</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-center text-gray-500 mt-16 pb-6">
+    © 2026 LeadEstate AI
+  </footer>
+
+  <script>
+    const form = document.getElementById("form");
+    const output = document.getElementById("output");
+    const loading = document.getElementById("loading");
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+
+      output.textContent = "";
+      loading.classList.remove("hidden");
+      document.getElementById("newBtn").classList.add("hidden");
+
+      const res = await fetch("http://localhost:3000/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          location: document.getElementById("location").value,
+          tone: document.getElementById("tone").value
+        })
+      });
+
+      const data = await res.json();
+
+      loading.classList.add("hidden");
+      output.textContent = data.result;
+      document.getElementById("copyBtn").classList.remove("hidden");
+      document.getElementById("newBtn").classList.remove("hidden");
+    };
+
+    document.getElementById("newBtn").onclick = () => {
+      output.textContent = "";
+      document.getElementById("location").value = "";
+      document.getElementById("tone").value = "";
+      document.getElementById("newBtn").classList.add("hidden");
+      document.getElementById("copyBtn").classList.add("hidden");
+    };
+
+    document.getElementById("copyBtn").onclick = () => {
+      navigator.clipboard.writeText(output.textContent);
+      document.getElementById("copyBtn").textContent = "Copied!";
+      setTimeout(() => {
+        document.getElementById("copyBtn").textContent = "Copy";
+      }, 1500);
+    };
+  </script>
+
+</body>
+</html>
