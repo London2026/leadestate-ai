@@ -4,12 +4,9 @@ import cors from "cors";
 
 const app = express();
 
-app.use(cors({
-  origin: "*"
-}));
-
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -37,14 +34,14 @@ Include:
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
+      model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }]
     });
 
     res.json({ result: response.choices[0].message.content });
 
   } catch (error) {
-    console.error(error);
+    console.error("ERROR:", error);
     res.status(500).send("Error generating post");
   }
 });

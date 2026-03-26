@@ -50,11 +50,10 @@
       <div id="loading" class="text-center mt-4 hidden">⏳ Generating...</div>
       <button id="newBtn" class="w-full mt-3 bg-gray-300 text-black p-2 rounded-lg hidden">Generate New Post</button>
 
-      <div class="relative mt-6">
-        <div class="flex justify-end mb-2">
-        <button id="copyBtn" class="bg-black text-white px-3 py-1 text-xs rounded hidden">Copy</button>
-      </div>
-      <pre id="output" class="bg-gray-100 p-4 rounded-lg whitespace-pre-wrap text-sm"></pre>
+      <!-- AI Output Section -->
+      <div id="output-container" class="relative mt-6">
+        <pre id="generated-text" class="bg-gray-100 p-4 rounded-lg whitespace-pre-wrap text-sm text-black"></pre>
+        <button id="copyBtn" class="absolute top-2 right-2 bg-black text-white px-3 py-1 text-xs rounded hidden">Copy</button>
       </div>
     </div>
   </div>
@@ -82,47 +81,64 @@
 
   <script>
     const form = document.getElementById("form");
-    const output = document.getElementById("output");
+    const locationInput = document.getElementById("location");
+    const toneInput = document.getElementById("tone");
+    const generatedText = document.getElementById("generated-text");
     const loading = document.getElementById("loading");
+    const copyBtn = document.getElementById("copyBtn");
+    const newBtn = document.getElementById("newBtn");
 
     form.onsubmit = async (e) => {
       e.preventDefault();
 
-      output.textContent = "";
+      // Clear previous content
+      generatedText.textContent = "";
       loading.classList.remove("hidden");
-      document.getElementById("newBtn").classList.add("hidden");
+      copyBtn.classList.add("hidden");
+      newBtn.classList.add("hidden");
 
-      const res = await fetch("http://localhost:3000/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: document.getElementById("location").value,
-          tone: document.getElementById("tone").value
+      try {
+        const res = await fetch("https://leadestate-ai.onrender.com/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: locationInput.value,
+            tone: toneInput.value
+          })
+        });
+
+        const data = await res.json();
+
+        loading.classList.add("hidden");
+        generatedText.textContent = data.result || "No result returned.";
+        copyBtn.classList.remove("hidden");
+        newBtn.classList.remove("hidden");
+
+      } catch (err) {
+        loading.classList.add("hidden");
+        generatedText.textContent = "❌ Error generating post. Please try again.";
+        console.error(err);
+        copyBtn.classList.remove("hidden");
+      }
+    };
+
+    // Generate new post
+    newBtn.onclick = () => {
+      generatedText.textContent = "";
+      locationInput.value = "";
+      toneInput.value = "";
+      newBtn.classList.add("hidden");
+      copyBtn.classList.add("hidden");
+    };
+
+    // Copy functionality
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(generatedText.textContent)
+        .then(() => {
+          copyBtn.textContent = "Copied!";
+          setTimeout(() => copyBtn.textContent = "Copy", 1500);
         })
-      });
-
-      const data = await res.json();
-
-      loading.classList.add("hidden");
-      output.textContent = data.result;
-      document.getElementById("copyBtn").classList.remove("hidden");
-      document.getElementById("newBtn").classList.remove("hidden");
-    };
-
-    document.getElementById("newBtn").onclick = () => {
-      output.textContent = "";
-      document.getElementById("location").value = "";
-      document.getElementById("tone").value = "";
-      document.getElementById("newBtn").classList.add("hidden");
-      document.getElementById("copyBtn").classList.add("hidden");
-    };
-
-    document.getElementById("copyBtn").onclick = () => {
-      navigator.clipboard.writeText(output.textContent);
-      document.getElementById("copyBtn").textContent = "Copied!";
-      setTimeout(() => {
-        document.getElementById("copyBtn").textContent = "Copy";
-      }, 1500);
+        .catch(err => console.error("Copy failed:", err));
     };
   </script>
 
