@@ -33,12 +33,14 @@ Include:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await openai.responses.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }]
+      input: prompt
     });
 
-    res.json({ result: response.choices[0].message.content });
+    res.json({
+      result: response.output[0].content[0].text
+    });
 
   } catch (error) {
     console.error("ERROR:", error);
