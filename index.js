@@ -1,55 +1,47 @@
 import express from "express";
-import OpenAI from "openai";
 import cors from "cors";
+import OpenAI from "openai";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Health check (important for Render)
+app.get("/", (req, res) => {
+  res.send("API is running");
+});
+
 app.post("/generate", async (req, res) => {
-  const { location, tone } = req.body;
-
-  const prompt = `
-You are a high-performing real estate marketing expert.
-
-Create an Instagram post for a real estate agent.
-
-Location: ${location}
-Tone: ${tone}
-
-The goal is to attract buyers and sellers.
-
-Include:
-1. A strong hook
-2. A persuasive caption
-3. A call to action
-4. 10 hashtags
-`;
-
   try {
-    const response = await openai.responses.create({
-      model: "gpt-4o-mini",
-      input: prompt
+    const { location, tone } = req.body;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "user",
+          content: `Write a short real estate Instagram post for ${location} in a ${tone} tone. Include hashtags.`
+        }
+      ]
     });
 
     res.json({
-      result: response.output[0].content[0].text
+      result: response.choices[0].message.content
     });
 
   } catch (error) {
-    console.error("ERROR:", error);
-    res.status(500).send("Error generating post");
+    console.error(error);
+    res.status(500).json({ error: "Failed to generate" });
   }
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Server running");
+  console.log("Server running on port " + PORT);
 });

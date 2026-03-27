@@ -48,12 +48,13 @@
       </form>
 
       <div id="loading" class="text-center mt-4 hidden">⏳ Generating...</div>
-      <button id="newBtn" class="w-full mt-3 bg-gray-300 text-black p-2 rounded-lg hidden">Generate New Post</button>
 
-      <!-- AI Output Section -->
-      <div id="output-container" class="relative mt-6">
-        <pre id="generated-text" class="bg-gray-100 p-4 rounded-lg whitespace-pre-wrap text-sm text-black"></pre>
-        <button id="copyBtn" class="absolute top-2 right-2 bg-black text-white px-3 py-1 text-xs rounded hidden">Copy</button>
+      <div class="relative mt-6">
+        <pre id="output" class="bg-gray-100 p-4 rounded-lg whitespace-pre-wrap text-sm"></pre>
+        <div class="flex justify-between mt-2">
+          <button id="copyBtn" class="bg-black text-white px-3 py-1 text-xs rounded hidden">Copy</button>
+          <button id="newBtn" class="bg-gray-300 text-black px-3 py-1 text-xs rounded hidden">Generate New Post</button>
+        </div>
       </div>
     </div>
   </div>
@@ -81,18 +82,17 @@
 
   <script>
     const form = document.getElementById("form");
-    const locationInput = document.getElementById("location");
-    const toneInput = document.getElementById("tone");
-    const generatedText = document.getElementById("generated-text");
+    const output = document.getElementById("output");
     const loading = document.getElementById("loading");
     const copyBtn = document.getElementById("copyBtn");
     const newBtn = document.getElementById("newBtn");
+    const locationInput = document.getElementById("location");
+    const toneInput = document.getElementById("tone");
 
     form.onsubmit = async (e) => {
       e.preventDefault();
 
-      // Clear previous content
-      generatedText.textContent = "";
+      output.textContent = "";
       loading.classList.remove("hidden");
       copyBtn.classList.add("hidden");
       newBtn.classList.add("hidden");
@@ -110,35 +110,31 @@
         const data = await res.json();
 
         loading.classList.add("hidden");
-        generatedText.textContent = data.result || "No result returned.";
+        output.textContent = data.result;
         copyBtn.classList.remove("hidden");
         newBtn.classList.remove("hidden");
 
       } catch (err) {
         loading.classList.add("hidden");
-        generatedText.textContent = "❌ Error generating post. Please try again.";
+        output.textContent = "❌ Failed to generate post. Try again.";
         console.error(err);
-        copyBtn.classList.remove("hidden");
       }
     };
 
-    // Generate new post
-    newBtn.onclick = () => {
-      generatedText.textContent = "";
-      locationInput.value = "";
-      toneInput.value = "";
-      newBtn.classList.add("hidden");
-      copyBtn.classList.add("hidden");
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(output.textContent);
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => {
+        copyBtn.textContent = "Copy";
+      }, 1500);
     };
 
-    // Copy functionality
-    copyBtn.onclick = () => {
-      navigator.clipboard.writeText(generatedText.textContent)
-        .then(() => {
-          copyBtn.textContent = "Copied!";
-          setTimeout(() => copyBtn.textContent = "Copy", 1500);
-        })
-        .catch(err => console.error("Copy failed:", err));
+    newBtn.onclick = () => {
+      output.textContent = "";
+      locationInput.value = "";
+      toneInput.value = "";
+      copyBtn.classList.add("hidden");
+      newBtn.classList.add("hidden");
     };
   </script>
 
